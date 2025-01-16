@@ -106,39 +106,43 @@ def check_number():
         if not os.path.exists(filepath):
             return jsonify({'error': '请先上传Excel文件'}), 400
         
-        # 使用 openpyxl 读取和处理数据
-        wb = openpyxl.load_workbook(filepath)
-        ws = wb.active
-        
-        data_col, note_col = prefix_columns[prefix]
-        
-        # 检查数字是否已存在
-        for cell in ws[data_col]:
-            if cell.value and str(cell.value).strip() == number:
-                return jsonify({'exists': True, 'message': '该数据已存在'})
-        
-        # 找到对应列的第一个空单元格
-        empty_row = None
-        for idx, cell in enumerate(ws[data_col], 1):
-            if not cell.value:
-                empty_row = idx
-                break
-        
-        if not empty_row:
-            empty_row = ws.max_row + 1
+        # 使用 with 语句确保文件正确关闭
+        with open(filepath, 'rb') as f:
+            wb = openpyxl.load_workbook(f)
+            ws = wb.active
             
-        # 添加数据
-        data_cell = ws[f'{data_col}{empty_row}']
-        data_cell.value = number
-        
-        # 设置红色字体
-        from openpyxl.styles import Font
-        data_cell.font = Font(color="FF0000")
-        
-        # 添加说明文字
-        ws[f'{note_col}{empty_row}'] = '新添加数据'
-        
-        wb.save(filepath)
+            data_col, note_col = prefix_columns[prefix]
+            
+            # 检查数字是否已存在
+            for cell in ws[data_col]:
+                if cell.value and str(cell.value).strip() == number:
+                    wb.close()
+                    return jsonify({'exists': True, 'message': '该数据已存在'})
+            
+            # 找到对应列的第一个空单元格
+            empty_row = None
+            for idx, cell in enumerate(ws[data_col], 1):
+                if not cell.value:
+                    empty_row = idx
+                    break
+            
+            if not empty_row:
+                empty_row = ws.max_row + 1
+                
+            # 添加数据
+            data_cell = ws[f'{data_col}{empty_row}']
+            data_cell.value = number
+            
+            # 设置红色字体
+            from openpyxl.styles import Font
+            data_cell.font = Font(color="FF0000")
+            
+            # 添加说明文字
+            ws[f'{note_col}{empty_row}'] = '新添加数据'
+            
+            # 保存文件
+            wb.save(filepath)
+            wb.close()
         
         return jsonify({
             'exists': False, 
@@ -158,19 +162,21 @@ def download_excel():
         if not os.path.exists(filepath):
             return jsonify({'error': '文件不存在'}), 404
             
-        # 直接发送文件，不需要重新打开和保存
-        response = send_file(
-            filepath,
-            as_attachment=True,
-            download_name='data.xlsx',
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        
-        # 添加必要的响应头
-        response.headers['Content-Disposition'] = 'attachment; filename=data.xlsx'
-        response.headers['Cache-Control'] = 'no-cache'
-        
-        return response
+        # 使用 with 语句确保文件正确关闭
+        with open(filepath, 'rb') as f:
+            # 设置正确的 MIME 类型和响应头
+            response = send_file(
+                f,
+                as_attachment=True,
+                download_name='data.xlsx',
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            
+            # 添加必要的响应头
+            response.headers['Content-Disposition'] = 'attachment; filename=data.xlsx'
+            response.headers['Cache-Control'] = 'no-cache'
+            
+            return response
             
     except Exception as e:
         logger.error(f"下载文件时出错: {str(e)}")
