@@ -1,0 +1,13 @@
+qr_scanner_project/
+├── static/
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       └── main.js
+├── templates/
+│   └── index.html
+├── uploads/
+│   └── .gitkeep
+├── app.py
+├── requirements.txt
+└── README.md 

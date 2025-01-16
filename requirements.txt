@@ -1,0 +1,14 @@
+# 最基础的依赖
+flask==2.3.3
+flask-cors==4.0.0
+Werkzeug==2.3.7
+gunicorn==21.2.0
+
+# 文件处理
+openpyxl==3.1.2
+
+# 数据库
+SQLAlchemy==2.0.23
+
+# SSL 支持
+pyOpenSSL==23.2.0
