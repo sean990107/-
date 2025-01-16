@@ -388,11 +388,18 @@ function updateFileStatus(filename) {
 
 function updateFileDisplay() {
     const fileInput = document.getElementById('excelFile');
+    if (!fileInput) {
+        console.error('File input element not found');
+        return;
+    }
+
     const uploadButton = fileInput.nextElementSibling;
     const fileNameDisplay = document.getElementById('currentFileName');
     
     if (lastUploadedFile) {
-        uploadButton.innerHTML = '<i class="bi bi-upload"></i> 更新';
+        if (uploadButton) {
+            uploadButton.innerHTML = '<i class="bi bi-upload"></i> 更新';
+        }
         if (fileNameDisplay) {
             fileNameDisplay.innerHTML = `当前文件：<strong>${lastUploadedFile}</strong>`;
         }
