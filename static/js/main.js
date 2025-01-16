@@ -90,8 +90,8 @@ function startCamera() {
     }
     
     const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
+        fps: 30,
+        qrbox: { width: 200, height: 200 },
         aspectRatio: 1.0,
         formatsToSupport: [
             Html5QrcodeSupportedFormats.QR_CODE,
@@ -101,6 +101,16 @@ function startCamera() {
         ],
         experimentalFeatures: {
             useBarCodeDetectorIfSupported: true
+        },
+        disableFlip: false,
+        videoConstraints: {
+            width: { min: 640, ideal: 1280, max: 1920 },
+            height: { min: 480, ideal: 720, max: 1080 },
+            facingMode: "environment",
+            advanced: [{
+                focusMode: "continuous",
+                zoom: 1.0
+            }]
         }
     };
     
