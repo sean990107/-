@@ -161,22 +161,41 @@ def download_excel():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], 'data.xlsx')
         if not os.path.exists(filepath):
             return jsonify({'error': '文件不存在'}), 404
-            
-        # 使用 with 语句确保文件正确关闭
-        with open(filepath, 'rb') as f:
-            # 设置正确的 MIME 类型和响应头
+
+        # 复制一个临时文件用于下载
+        temp_filepath = os.path.join(app.config['UPLOAD_FOLDER'], 'temp_download.xlsx')
+        try:
+            # 使用 openpyxl 打开并保存新文件，确保文件完整性
+            wb = openpyxl.load_workbook(filepath)
+            wb.save(temp_filepath)
+            wb.close()
+
+            # 设置响应头，指定正确的文件类型和编码
             response = send_file(
-                f,
+                temp_filepath,
                 as_attachment=True,
                 download_name='data.xlsx',
-                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                max_age=0,
+                conditional=True,
+                etag=True
             )
             
             # 添加必要的响应头
             response.headers['Content-Disposition'] = 'attachment; filename=data.xlsx'
-            response.headers['Cache-Control'] = 'no-cache'
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
             
             return response
+
+        finally:
+            # 确保临时文件被删除
+            try:
+                if os.path.exists(temp_filepath):
+                    os.remove(temp_filepath)
+            except Exception as e:
+                logger.error(f"删除临时文件时出错: {str(e)}")
             
     except Exception as e:
         logger.error(f"下载文件时出错: {str(e)}")
