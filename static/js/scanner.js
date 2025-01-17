@@ -57,6 +57,7 @@ async function initScanner(cameraId) {
         
         html5QrcodeScanner = new Html5Qrcode('reader');
         
+        // 先启动摄像头
         await html5QrcodeScanner.start(
             { facingMode: "environment" },
             {
@@ -74,42 +75,50 @@ async function initScanner(cameraId) {
             (decodedText, decodedResult) => {
                 if (isScanning) {
                     // 更新追踪点位置
-                    updateTrackingDot(decodedResult.location);
+                    try {
+                        updateTrackingDot(decodedResult.location);
+                    } catch (e) {
+                        console.log('更新追踪点失败:', e);
+                    }
                     handleScanResult(decodedText);
                 }
             },
             (errorMessage) => {
                 // 当没有检测到二维码时隐藏追踪点
-                const dot = document.querySelector('.tracking-dot');
-                if (dot) dot.style.display = 'none';
+                try {
+                    const dot = document.querySelector('.tracking-dot');
+                    if (dot) dot.style.display = 'none';
+                } catch (e) {
+                    console.log('隐藏追踪点失败:', e);
+                }
             }
         );
+
+        // 等待扫描器完全初始化
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
-        // 添加追踪点
+        // 确保扫描区域存在后再添加追踪点
         const scanRegion = document.getElementById('reader__scan_region');
-        if (!document.querySelector('.tracking-dot')) {
-            const dot = document.createElement('div');
-            dot.className = 'tracking-dot';
-            scanRegion.appendChild(dot);
+        if (scanRegion && !document.querySelector('.tracking-dot')) {
+            try {
+                const dot = document.createElement('div');
+                dot.className = 'tracking-dot';
+                scanRegion.appendChild(dot);
+            } catch (e) {
+                console.log('添加追踪点失败:', e);
+            }
         }
-        
-        // 等待扫描器初始化完成
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         // 更新UI
         if (placeholder) placeholder.style.display = 'none';
         if (reader) reader.style.display = 'block';
         
         isCameraActive = true;
-        isScanning = false;  // 默认不扫描
+        isScanning = false;
         
         updateCameraButton();
         updateScanButton();
         showResult('摄像头已打开，点击"开始扫描"进行扫描', 'info');
-        
-        // 显示扫描按钮
-        const scanButton = document.getElementById('scanButton');
-        if (scanButton) scanButton.style.display = 'block';
         
     } catch (err) {
         console.error('启动摄像头失败:', err);
