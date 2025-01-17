@@ -139,13 +139,44 @@ body {
 }
 
 #reader__scan_region {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    position: relative !important;
+    overflow: hidden !important;
 }
 
-#reader__scan_region img {
-    display: none !important; /* 隐藏默认的扫描图片 */
+#reader__scan_region::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 3px solid #28a745;
+    z-index: 1;
+}
+
+#reader__scan_region::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #28a745;
+    box-shadow: 0 0 10px #28a745;
+    animation: scanning 2s linear infinite;
+    z-index: 2;
+    left: 0;
+    top: 0;
+}
+
+@keyframes scanning {
+    0% {
+        top: 0;
+    }
+    50% {
+        top: calc(100% - 2px);
+    }
+    100% {
+        top: 0;
+    }
 }
 
 /* 按钮样式 */
@@ -349,18 +380,14 @@ body {
 /* 扫描动画样式 */
 .scan-line {
     position: absolute;
-    top: 0;
     left: 0;
+    top: 0;
     width: 100%;
     height: 2px;
-    background: linear-gradient(to right, 
-        rgba(0,123,255,0) 0%,
-        rgba(0,123,255,0.8) 50%,
-        rgba(0,123,255,0) 100%);
-    box-shadow: 0 0 8px rgba(0,123,255,0.8);
-    animation: scan 2s linear infinite;
-    z-index: 100;
-    pointer-events: none;
+    background: #28a745;
+    box-shadow: 0 0 8px #28a745;
+    z-index: 9999;
+    animation: none;
 }
 
 .scan-corner {
@@ -400,16 +427,10 @@ body {
     border-top: none;
 }
 
-@keyframes scan {
-    0% {
-        top: 20px;
-    }
-    50% {
-        top: calc(100% - 20px);
-    }
-    100% {
-        top: 20px;
-    }
+@keyframes scanning {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(calc(100% - 2px)); }
+    100% { transform: translateY(0); }
 }
 
 /* 扫描控制容器 */
@@ -680,5 +701,87 @@ body {
 @media (min-width: 992px) {
     .stats-section .stats-item {
         flex: 1 1 calc(25% - 0.75rem);
+    }
+}
+
+/* 添加移动设备的响应式样式 */
+@media (max-width: 768px) {
+    #reader {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 300px;
+    }
+    
+    #reader video {
+        width: 100% !important;
+        height: auto !important;
+    }
+}
+
+/* 扫描框和扫描线样式 */
+.scan-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    height: 70%;
+    border: 2px solid #28a745;
+    box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.5);
+    clip-path: inset(0 -100vmax);
+    pointer-events: none;
+}
+
+.scan-line {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 2px;
+    background: #28a745;
+    box-shadow: 0 0 8px #28a745;
+    display: none;
+}
+
+@keyframes scanning {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(100%); }
+    100% { transform: translateY(0); }
+}
+
+/* 追踪点样式 */
+.tracking-dot {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #28a745;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px #28a745;
+    pointer-events: none;
+    z-index: 1000;
+    display: none;
+    transition: all 0.1s ease-out;
+}
+
+/* 添加脉冲动画 */
+.tracking-dot::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #28a745;
+    border-radius: 50%;
+    animation: pulse 1s ease-out infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(3);
+        opacity: 0;
     }
 }

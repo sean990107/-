@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initCameraList();
     
     // 加载备份列表
-    loadBackupList();
+    refreshBackupList();
     
     // 更新文件显示
     updateFileDisplay();
