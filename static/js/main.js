@@ -82,6 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    
+    refreshBackups();
 });
 
 function startCamera() {
@@ -508,3 +510,151 @@ function startSystemCamera() {
 
 // 修改 HTML 中的扫描按钮文本
 document.getElementById('scanButton').innerHTML = '<i class="bi bi-camera"></i> 打开相机扫描'; 
+
+// 添加备份列表刷新函数
+async function refreshBackups() {
+    try {
+        const response = await fetch(`${BASE_URL}/list_backups`);
+        const data = await response.json();
+        
+        const backupList = document.getElementById('backupList');
+        backupList.innerHTML = '';
+        
+        if (data.backups && data.backups.length > 0) {
+            data.backups.forEach(backup => {
+                const item = document.createElement('div');
+                item.className = 'list-group-item d-flex justify-content-between align-items-center';
+                item.innerHTML = `
+                    <div>
+                        <small class="text-muted">${backup.timestamp}</small>
+                        <div>${formatBytes(backup.size)}</div>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary" 
+                            onclick="restoreBackup('${backup.filename}')">
+                        恢复
+                    </button>
+                `;
+                backupList.appendChild(item);
+            });
+        } else {
+            backupList.innerHTML = '<div class="text-muted text-center py-3">暂无备份</div>';
+        }
+    } catch (error) {
+        console.error('获取备份列表失败:', error);
+        showResult('获取备份列表失败', 'danger');
+    }
+}
+
+// 添加恢复备份函数
+async function restoreBackup(filename) {
+    if (!confirm('确定要恢复这个备份吗？当前数据将被覆盖。')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${BASE_URL}/restore_backup/${filename}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            showResult('备份恢复成功', 'success');
+            refreshExcelPreview();
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        console.error('恢复备份失败:', error);
+        showResult('恢复备份失败', 'danger');
+    }
+}
+
+// 文件大小格式化函数
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// 添加日志函数
+function logToServer(message, type = 'info') {
+    console.log(`[${type.toUpperCase()}] ${message}`);
+    
+    // 发送日志到服务器
+    fetch(`${BASE_URL}/log`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            message,
+            type,
+            timestamp: new Date().toISOString()
+        })
+    }).catch(error => console.error('发送日志失败:', error));
+}
+
+// 在关键操作处添加日志
+async function checkTempFiles() {
+    try {
+        logToServer('开始检查临时文件');
+        const response = await fetch(`${BASE_URL}/check_temp_files`);
+        const data = await response.json();
+        
+        logToServer(`找到 ${data.files?.length || 0} 个文件`);
+        console.log('文件列表:', data.files);
+        
+        if (data.files && data.files.length > 0) {
+            console.log('找到的文件:', data.files);
+            
+            // 显示文件列表
+            const fileList = data.files.map(file => `
+                <div class="list-group-item">
+                    <div>路径: ${file.path}</div>
+                    <div>大小: ${formatBytes(file.size)}</div>
+                    <div>修改时间: ${file.modified}</div>
+                    <button class="btn btn-sm btn-primary mt-2" 
+                            onclick="recoverFile('${file.path}')">
+                        恢复此文件
+                    </button>
+                </div>
+            `).join('');
+            
+            // 显示在页面上
+            const result = document.getElementById('result');
+            result.innerHTML = `
+                <div class="alert alert-info">
+                    <h5>找到以下文件：</h5>
+                    <div class="list-group mt-3">
+                        ${fileList}
+                    </div>
+                </div>
+            `;
+        } else {
+            showResult('未找到任何Excel文件', 'warning');
+        }
+    } catch (error) {
+        logToServer(`检查文件失败: ${error.message}`, 'error');
+        showResult('检查文件失败: ' + error.message, 'danger');
+    }
+}
+
+// 添加恢复文件函数
+async function recoverFile(filePath) {
+    try {
+        logToServer(`尝试恢复文件: ${filePath}`);
+        const response = await fetch(`${BASE_URL}/recover_file/${encodeURIComponent(filePath)}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            logToServer('文件恢复成功');
+            showResult('文件恢复成功', 'success');
+            refreshExcelPreview();
+        } else {
+            throw new Error(data.error || '恢复失败');
+        }
+    } catch (error) {
+        logToServer(`恢复文件失败: ${error.message}`, 'error');
+        showResult('恢复文件失败: ' + error.message, 'danger');
+    }
+} 
