@@ -1,0 +1,141 @@
+2025-01-17 22:30:51,847 - __main__ - INFO - 日志系统初始化完成
+2025-01-17 22:30:52,571 - config.database - INFO - MongoDB 连接成功!
+2025-01-17 22:30:52,571 - __main__ - INFO - 数据库连接初始化成功
+2025-01-17 22:30:52,571 - __main__ - INFO - 所有蓝图注册完成
+2025-01-17 22:30:52,571 - __main__ - INFO - 应用启动
+2025-01-17 22:30:52,587 - werkzeug - WARNING -  * Debugger is active!
+2025-01-17 22:30:52,598 - werkzeug - INFO -  * Debugger PIN: 112-935-945
+2025-01-17 22:30:52,698 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:30:52] "GET / HTTP/1.1" 200 -
+2025-01-17 22:30:52,837 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:30:52] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2025-01-17 22:30:52,837 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:30:52] "[36mGET /static/js/statistics.js HTTP/1.1[0m" 304 -
+2025-01-17 22:30:52,841 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:30:52] "[36mGET /static/js/ui.js HTTP/1.1[0m" 304 -
+2025-01-17 22:30:52,841 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:30:52] "[36mGET /static/js/file-manager.js HTTP/1.1[0m" 304 -
+2025-01-17 22:30:52,846 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:30:52] "[36mGET /static/js/scanner.js HTTP/1.1[0m" 304 -
+2025-01-17 22:30:52,848 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:30:52] "[36mGET /static/js/backup.js HTTP/1.1[0m" 304 -
+2025-01-17 22:30:52,849 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:30:52] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2025-01-17 22:30:53,180 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:30:53] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:30:53,637 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:30:53] "GET /api/backup/list HTTP/1.1" 200 -
+2025-01-17 22:30:59,174 - routes.backup - INFO - 收到备份创建请求
+2025-01-17 22:30:59,174 - routes.backup - INFO - 开始创建备份: name=部分1, type=current
+2025-01-17 22:30:59,174 - routes.backup - INFO - 临时文件路径: D:\编程\--main\backups\temp_20250117_223059.xlsx
+2025-01-17 22:30:59,281 - routes.backup - INFO - 成功获取Excel模板
+2025-01-17 22:30:59,499 - routes.backup - INFO - 获取到本次扫描记录数: 0
+2025-01-17 22:30:59,504 - routes.backup - INFO - 开始保存到临时文件
+2025-01-17 22:30:59,510 - routes.backup - INFO - 临时文件保存成功
+2025-01-17 22:30:59,510 - routes.backup - INFO - 开始保存到GridFS
+2025-01-17 22:30:59,510 - routes.backup - INFO - 读取到的文件大小: 4977 字节
+2025-01-17 22:30:59,949 - routes.backup - INFO - 成功保存到GridFS, file_id=678a69a3b172cbb55758c801
+2025-01-17 22:30:59,950 - routes.backup - INFO - 临时文件已删除
+2025-01-17 22:30:59,950 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:30:59] "POST /api/backup/create HTTP/1.1" 200 -
+2025-01-17 22:31:00,069 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:31:00] "GET /api/backup/list HTTP/1.1" 200 -
+2025-01-17 22:31:02,494 - routes.backup - INFO - 开始下载备份: file_id=678a69a3b172cbb55758c801
+2025-01-17 22:31:02,600 - routes.backup - INFO - 找到备份文件: filename=部分1_20250117_223059.xlsx
+2025-01-17 22:31:02,601 - routes.backup - INFO - 临时下载文件路径: D:\编程\--main\backups\temp_download_20250117_223102.xlsx
+2025-01-17 22:31:02,718 - routes.backup - INFO - 从GridFS读取的文件大小: 4977 字节
+2025-01-17 22:31:02,718 - routes.backup - INFO - 文件已写入临时位置
+2025-01-17 22:31:02,718 - routes.backup - INFO - 开始发送文件: 部分1_20250117_223059.xlsx
+2025-01-17 22:31:02,719 - routes.backup - INFO - 文件发送成功
+2025-01-17 22:31:02,719 - routes.backup - ERROR - 删除临时下载文件失败: [WinError 32] 另一个程序正在使用此文件，进程无法访问。: 'D:\\编程\\--main\\backups\\temp_download_20250117_223102.xlsx'
+2025-01-17 22:31:02,720 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:31:02] "GET /api/backup/download/678a69a3b172cbb55758c801 HTTP/1.1" 200 -
+2025-01-17 22:31:23,155 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:31:23] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:31:53,797 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:31:53] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:32:08,564 - werkzeug - INFO -  * Detected change in 'D:\\编程\\--main\\routes\\backup.py', reloading
+2025-01-17 22:32:11,561 - __main__ - INFO - === 应用启动 ===
+2025-01-17 22:32:11,561 - __main__ - INFO - Flask应用创建
+2025-01-17 22:32:12,266 - config.database - INFO - MongoDB 连接成功!
+2025-01-17 22:32:12,266 - __main__ - INFO - 数据库连接初始化成功
+2025-01-17 22:32:12,266 - __main__ - INFO - 所有蓝图注册完成
+2025-01-17 22:32:12,266 - __main__ - INFO - 开始运行Flask应用
+2025-01-17 22:32:12,286 - werkzeug - WARNING -  * Debugger is active!
+2025-01-17 22:32:12,297 - werkzeug - INFO -  * Debugger PIN: 112-935-945
+2025-01-17 22:32:23,620 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:23] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:32:24,103 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:24] "GET / HTTP/1.1" 200 -
+2025-01-17 22:32:24,209 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:24] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2025-01-17 22:32:24,215 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:24] "[36mGET /static/js/statistics.js HTTP/1.1[0m" 304 -
+2025-01-17 22:32:24,218 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:24] "[36mGET /static/js/ui.js HTTP/1.1[0m" 304 -
+2025-01-17 22:32:24,220 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:24] "[36mGET /static/js/file-manager.js HTTP/1.1[0m" 304 -
+2025-01-17 22:32:24,222 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:24] "[36mGET /static/js/scanner.js HTTP/1.1[0m" 304 -
+2025-01-17 22:32:24,223 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:24] "[36mGET /static/js/backup.js HTTP/1.1[0m" 304 -
+2025-01-17 22:32:24,224 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:24] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2025-01-17 22:32:24,622 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:24] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:32:25,132 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:25] "GET /api/backup/list HTTP/1.1" 200 -
+2025-01-17 22:32:30,525 - routes.backup - INFO - 收到备份创建请求
+2025-01-17 22:32:30,526 - routes.backup - INFO - 开始创建备份: name=部分, type=current
+2025-01-17 22:32:30,526 - routes.backup - INFO - 临时文件路径: D:\编程\--main\backups\temp_20250117_223230.xlsx
+2025-01-17 22:32:30,642 - routes.backup - INFO - 成功获取Excel模板
+2025-01-17 22:32:30,896 - routes.backup - INFO - 获取到本次扫描记录数: 0
+2025-01-17 22:32:30,896 - routes.backup - INFO - 开始保存到临时文件
+2025-01-17 22:32:30,910 - routes.backup - INFO - 临时文件保存成功
+2025-01-17 22:32:30,910 - routes.backup - INFO - 开始保存到GridFS
+2025-01-17 22:32:30,910 - routes.backup - INFO - 读取到的文件大小: 4976 字节
+2025-01-17 22:32:31,391 - routes.backup - INFO - 成功保存到GridFS, file_id=678a69feb612df3debd81f9c
+2025-01-17 22:32:31,391 - routes.backup - INFO - 临时文件已删除
+2025-01-17 22:32:31,391 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:31] "POST /api/backup/create HTTP/1.1" 200 -
+2025-01-17 22:32:31,522 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:31] "GET /api/backup/list HTTP/1.1" 200 -
+2025-01-17 22:32:37,023 - routes.backup - INFO - 开始下载备份: file_id=678a69feb612df3debd81f9c
+2025-01-17 22:32:37,137 - routes.backup - INFO - 找到备份文件: filename=部分_20250117_223230.xlsx
+2025-01-17 22:32:37,138 - routes.backup - INFO - 临时下载文件路径: D:\编程\--main\backups\temp_download_20250117_223237.xlsx
+2025-01-17 22:32:37,255 - routes.backup - INFO - 从GridFS读取的文件大小: 4976 字节
+2025-01-17 22:32:37,255 - routes.backup - INFO - 文件已写入临时位置
+2025-01-17 22:32:37,255 - routes.backup - INFO - 开始发送文件: 部分_20250117_223230.xlsx
+2025-01-17 22:32:37,255 - routes.backup - INFO - 文件发送成功
+2025-01-17 22:32:37,255 - routes.backup - ERROR - 删除临时下载文件失败: [WinError 32] 另一个程序正在使用此文件，进程无法访问。: 'D:\\编程\\--main\\backups\\temp_download_20250117_223237.xlsx'
+2025-01-17 22:32:37,255 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:37] "GET /api/backup/download/678a69feb612df3debd81f9c HTTP/1.1" 200 -
+2025-01-17 22:32:54,822 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:32:54] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:33:24,808 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:33:24] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:33:54,806 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:33:54] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:34:03,909 - werkzeug - INFO -  * Detected change in 'D:\\编程\\--main\\routes\\backup.py', reloading
+2025-01-17 22:34:07,078 - __main__ - INFO - === 应用启动 ===
+2025-01-17 22:34:07,079 - __main__ - INFO - Flask应用创建
+2025-01-17 22:34:07,798 - config.database - INFO - MongoDB 连接成功!
+2025-01-17 22:34:07,798 - __main__ - INFO - 数据库连接初始化成功
+2025-01-17 22:34:07,798 - __main__ - INFO - 所有蓝图注册完成
+2025-01-17 22:34:07,798 - __main__ - INFO - 开始运行Flask应用
+2025-01-17 22:34:07,812 - werkzeug - WARNING -  * Debugger is active!
+2025-01-17 22:34:07,823 - werkzeug - INFO -  * Debugger PIN: 112-935-945
+2025-01-17 22:34:07,914 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:07] "GET / HTTP/1.1" 200 -
+2025-01-17 22:34:08,000 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:08] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2025-01-17 22:34:08,007 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:08] "[36mGET /static/js/statistics.js HTTP/1.1[0m" 304 -
+2025-01-17 22:34:08,007 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:08] "[36mGET /static/js/ui.js HTTP/1.1[0m" 304 -
+2025-01-17 22:34:08,009 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:08] "[36mGET /static/js/file-manager.js HTTP/1.1[0m" 304 -
+2025-01-17 22:34:08,013 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:08] "[36mGET /static/js/scanner.js HTTP/1.1[0m" 304 -
+2025-01-17 22:34:08,021 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:08] "[36mGET /static/js/backup.js HTTP/1.1[0m" 304 -
+2025-01-17 22:34:08,022 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:08] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2025-01-17 22:34:08,354 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:08] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:34:08,857 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:08] "GET /api/backup/list HTTP/1.1" 200 -
+2025-01-17 22:34:16,079 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:16] "POST /api/backup/create HTTP/1.1" 200 -
+2025-01-17 22:34:16,207 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:16] "GET /api/backup/list HTTP/1.1" 200 -
+2025-01-17 22:34:19,342 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:19] "GET /api/backup/download/678a6a67ea30ffbce0b872e0 HTTP/1.1" 200 -
+2025-01-17 22:34:38,366 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:34:38] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:35:08,832 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:35:08] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:35:38,810 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:35:38] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:35:56,422 - werkzeug - INFO -  * Detected change in 'D:\\编程\\--main\\routes\\backup.py', reloading
+2025-01-17 22:35:59,825 - __main__ - INFO - === 应用启动 ===
+2025-01-17 22:35:59,826 - __main__ - INFO - Flask应用创建
+2025-01-17 22:36:00,528 - config.database - INFO - MongoDB 连接成功!
+2025-01-17 22:36:00,528 - __main__ - INFO - 数据库连接初始化成功
+2025-01-17 22:36:00,539 - __main__ - INFO - 所有蓝图注册完成
+2025-01-17 22:36:00,540 - __main__ - INFO - 开始运行Flask应用
+2025-01-17 22:36:00,553 - werkzeug - WARNING -  * Debugger is active!
+2025-01-17 22:36:00,560 - werkzeug - INFO -  * Debugger PIN: 112-935-945
+2025-01-17 22:36:00,650 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:00] "GET / HTTP/1.1" 200 -
+2025-01-17 22:36:00,758 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:00] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2025-01-17 22:36:00,764 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:00] "[36mGET /static/js/ui.js HTTP/1.1[0m" 304 -
+2025-01-17 22:36:00,766 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:00] "[36mGET /static/js/statistics.js HTTP/1.1[0m" 304 -
+2025-01-17 22:36:00,767 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:00] "[36mGET /static/js/scanner.js HTTP/1.1[0m" 304 -
+2025-01-17 22:36:00,770 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:00] "[36mGET /static/js/file-manager.js HTTP/1.1[0m" 304 -
+2025-01-17 22:36:00,777 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:00] "[36mGET /static/js/backup.js HTTP/1.1[0m" 304 -
+2025-01-17 22:36:00,778 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:00] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2025-01-17 22:36:01,123 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:01] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:36:01,630 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:01] "GET /api/backup/list HTTP/1.1" 200 -
+2025-01-17 22:36:08,774 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:08] "POST /api/backup/create HTTP/1.1" 200 -
+2025-01-17 22:36:08,911 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:08] "GET /api/backup/list HTTP/1.1" 200 -
+2025-01-17 22:36:11,134 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:11] "GET /api/backup/download/678a6ad8416cc1c8a528e06e HTTP/1.1" 200 -
+2025-01-17 22:36:31,122 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:31] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:36:33,281 - routes.scan - INFO - 收到扫描数据: 610481给你哈哈
+2025-01-17 22:36:33,507 - routes.scan - INFO - 提取的前缀: 610481
+2025-01-17 22:36:33,507 - routes.scan - WARNING - 未找到匹配的前缀列: 610481
+2025-01-17 22:36:33,507 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:36:33] "[31m[1mPOST /api/add_record HTTP/1.1[0m" 400 -
+2025-01-17 22:37:01,694 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:37:01] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:37:31,804 - werkzeug - INFO - 127.0.0.1 - - [17/Jan/2025 22:37:31] "GET /api/get_statistics?device_id=device_gahogwaaa HTTP/1.1" 200 -
+2025-01-17 22:37:43,829 - werkzeug - INFO -  * Detected change in 'D:\\编程\\--main\\routes\\backup.py', reloading

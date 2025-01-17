@@ -1,660 +1,148 @@
-let html5QrcodeScanner = null;
-let isScanning = false;
-let isCameraActive = false;
-let currentMessageTimeout = null;
-let lastUploadedFile = localStorage.getItem('lastUploadedFile') || null;
-
-// 添加基础URL配置
-const BASE_URL = window.location.origin;  // 自动适应部署环境
-
-// 添加版本号
-const VERSION = '1.0.1';
-
-// 添加语音对象
-const successAudio = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAADAAAGhgBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr///////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAAYbUjEkJAAAAAAAAAAAAAAAAAAAA//tQxAAB8AAAf4AAAAwAAAP8AAAABAA1VAuD4PwkHQfB8Hwfg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+AA");
-
+// 页面加载完成后的初始化
 document.addEventListener('DOMContentLoaded', function() {
-    // 获取摄像头选择下拉框
-    const cameraSelect = document.getElementById('cameraSelect');
+    // 初始化摄像头列表
+    initCameraList();
     
-    if (!cameraSelect) {
-        console.error('Camera select element not found');
-        return;
-    }
+    // 加载备份列表
+    loadBackupList();
     
-    // 检查是否支持摄像头访问
-    if (!window.isSecureContext) {
-        const currentUrl = window.location.href;
-        const httpUrl = currentUrl.replace('https://', 'http://');
-        showResult(`请使用 HTTP 访问: ${httpUrl}`, 'warning');
-        cameraSelect.innerHTML = '<option value="">请使用HTTP访问</option>';
-        return;
-    }
+    // 更新文件显示
+    updateFileDisplay();
     
-    // 获取可用的摄像头列表
-    Html5Qrcode.getCameras().then(devices => {
-        // 清空下拉框
+    // 获取初始统计信息
+    refreshStatistics();
+    
+    // 定期更新统计信息
+    setInterval(refreshStatistics, 30000);
+    
+    // 初始化文件拖放功能
+    initFileDragDrop();
+});
+
+// 初始化摄像头列表
+async function initCameraList() {
+    try {
+        const devices = await Html5Qrcode.getCameras();
+        const cameraSelect = document.getElementById('cameraSelect');
         cameraSelect.innerHTML = '';
         
         if (devices && devices.length) {
-            // 添加摄像头选项
             devices.forEach(device => {
                 const option = document.createElement('option');
                 option.value = device.id;
                 option.text = device.label || `摄像头 ${device.id}`;
                 cameraSelect.appendChild(option);
             });
+            
+            if (devices.length > 0) {
+                cameraSelect.value = devices[0].id;
+                // 显示扫描按钮
+                document.getElementById('scanButton').style.display = 'block';
+            }
         } else {
             cameraSelect.innerHTML = '<option value="">未检测到摄像头</option>';
             showResult('未检测到摄像头设备', 'warning');
         }
-    }).catch(err => {
+    } catch (err) {
         console.error('获取摄像头列表失败:', err);
-        if (err.toString().includes('NotAllowedError')) {
-            showResult('请允许访问摄像头', 'warning');
-        } else {
-            showResult('获取摄像头失败，请确保已授予摄像头权限', 'danger');
-        }
-        cameraSelect.innerHTML = '<option value="">获取摄像头失败</option>';
-    });
-    
-    // 监听摄像头选择变化
-    cameraSelect.addEventListener('change', function() {
-        if (this.value && isCameraActive) {
-            stopCamera().then(() => startCamera());
-        }
-    });
-    
-    // 恢复文件状态显示
-    updateFileDisplay();
-    
-    // 加载Excel预览
-    refreshExcelPreview();
-    
-    // 添加文件输入监听
-    const fileInput = document.getElementById('excelFile');
-    fileInput.addEventListener('change', function() {
-        if (lastUploadedFile && this.files.length > 0) {
-            const confirmUpdate = confirm('已有上传的文件，是否要更新？');
-            if (!confirmUpdate) {
-                this.value = '';
-                return;
-            }
-        }
-    });
-    
-    refreshBackups();
-});
-
-function startCamera() {
-    const cameraId = document.getElementById('cameraSelect').value;
-    if (!cameraId) {
-        showResult('请选择摄像头', 'warning');
-        return;
-    }
-    
-    if (!html5QrcodeScanner) {
-        html5QrcodeScanner = new Html5Qrcode("reader");
-    }
-    
-    const config = {
-        fps: 30,
-        qrbox: { width: 200, height: 200 },
-        aspectRatio: 1.0,
-        formatsToSupport: [
-            Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.DATA_MATRIX
-        ],
-        experimentalFeatures: {
-            useBarCodeDetectorIfSupported: false
-        },
-        disableFlip: false,
-        videoConstraints: {
-            width: { min: 640, ideal: 1280, max: 1920 },
-            height: { min: 480, ideal: 720, max: 1080 },
-            facingMode: "environment",
-            advanced: [{
-                focusMode: "continuous",
-                zoom: 1.5,
-                brightness: 1.2,
-                contrast: 1.5
-            }]
-        },
-        verbose: true,
-        rememberLastUsedCamera: true,
-        useGrayscaleImage: true,
-        threshold: {
-            perfect: 0.1,
-            good: 0.05,
-            valid: 0.02
-        }
-    };
-    
-    document.getElementById('reader-container').style.display = 'block';
-    document.getElementById('startButton').style.display = 'none';
-    document.getElementById('stopButton').style.display = 'inline-block';
-    
-    html5QrcodeScanner.start(
-        cameraId, 
-        config,
-        (decodedText, decodedResult) => {
-            if (isScanning) {
-                onScanSuccess(decodedText, decodedResult);
-            }
-        },
-        onScanError
-    ).then(() => {
-        isCameraActive = true;
-        showResult('摄像头已开启，点击"开始扫描"按钮开始扫描', 'info');
-    }).catch(err => {
-        console.error('启动扫描器失败:', err);
-        showResult('启动扫描器失败，请刷新页面重试', 'danger');
-    });
-}
-
-function toggleScanning() {
-    const scanButton = document.getElementById('scanButton');
-    
-    if (!isScanning) {
-        // 调用系统相机
-        startSystemCamera();
-    } else {
-        // 停止扫描
-        isScanning = false;
-        scanButton.innerHTML = '<i class="bi bi-qr-code-scan"></i> 开始扫描';
-        scanButton.classList.remove('scanning');
-        showResult('扫描已停止', 'warning');
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.pause();
-        }
+        showResult('获取摄像头失败：' + err.message, 'danger');
     }
 }
 
-function stopCamera() {
-    if (html5QrcodeScanner && isCameraActive) {
-        isScanning = false;
-        return html5QrcodeScanner.stop().then(() => {
-            isCameraActive = false;
-            document.getElementById('reader-container').style.display = 'none';
-            document.getElementById('startButton').style.display = 'inline-block';
-            document.getElementById('stopButton').style.display = 'none';
-            const scanButton = document.getElementById('scanButton');
-            scanButton.innerHTML = '<i class="bi bi-qr-code-scan"></i> 开始扫描';
-            scanButton.classList.remove('scanning');
-            showResult('摄像头已关闭', 'info');
-        }).catch((err) => {
-            console.error('停止扫描器失败:', err);
-            showResult('停止扫描器失败', 'danger');
-        });
-    }
-    return Promise.resolve();
+// 初始化文件拖放功能
+function initFileDragDrop() {
+    const uploadArea = document.querySelector('.upload-area');
+    if (!uploadArea) return;
+
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            document.getElementById('excelFile').files = files;
+            uploadExcel();
+        }
+    });
 }
 
-async function onScanSuccess(decodedText, decodedResult) {
+async function uploadTemplate() {
+    const fileInput = document.getElementById('templateFile');
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
     try {
-        // 播放提示音
-        successAudio.play().catch(e => console.error('播放提示音失败:', e));
+        const response = await fetch(`${BASE_URL}/upload_template`, {
+            method: 'POST',
+            body: formData  // 不要设置 Content-Type，让浏览器自动处理
+        });
         
-        // 暂停扫描
-        isScanning = false;
+        const data = await response.json();
         
-        // 显示处理中的提示
-        showResult('正在处理...', 'info');
-        
-        // 发送到服务器验证
-        const data = await checkNumber(decodedText);
-        
-        if (data.exists) {
-            showResult(data.message, 'warning');
-        } else {
-            showResult(data.message, 'success');
+        if (!response.ok) {
+            throw new Error(data.error || '上传失败');
         }
         
-        // 延迟后恢复扫描
-        setTimeout(() => {
-            isScanning = true;
-        }, 1500);
+        showResult('模板文件上传成功', 'success');
+        updateFileDisplay();
         
     } catch (error) {
-        console.error('处理扫描结果时出错:', error);
-        showResult(error.message || '处理失败，请重试', 'danger');
-        // 延迟后恢复扫描
-        setTimeout(() => {
-            isScanning = true;
-        }, 1500);
+        console.error('文件上传失败:', error);
+        showResult('文件上传失败: ' + error.message, 'danger');
     }
 }
 
-function onScanError(errorMessage) {
-    // 只在控制台记录错误，不显示给用户
-    console.debug('扫描中...', errorMessage);
-}
+async function clearDatabase() {
+    const password = document.getElementById('clearPassword').value;
+    if (!password) {
+        showResult('请输入密码', 'warning');
+        return;
+    }
 
-async function checkNumber(number) {
     try {
-        // 验证扫描到的数据
-        if (!number || number.trim() === '') {
-            throw new Error('无效的扫描数据');
-        }
-
-        console.log('发送请求到服务器:', number.trim());
-
-        const response = await fetch(`${BASE_URL}/check_number`, {
+        const response = await fetch(`${BASE_URL}/api/clear_database`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ number: number.trim() })
+            body: JSON.stringify({ password })
         });
-        
-        console.log('服务器响应状态:', response.status);
-        
+
         const data = await response.json();
-        console.log('服务器响应数据:', data);
-        
         if (!response.ok) {
-            throw new Error(data.error || `服务器错误 (${response.status})`);
+            throw new Error(data.error || '清除失败');
         }
+
+        // 关闭模态框
+        const modal = bootstrap.Modal.getInstance(document.getElementById('clearConfirmModal'));
+        modal.hide();
         
-        return data;
+        // 清空密码输入
+        document.getElementById('clearPassword').value = '';
+        
+        // 显示成功消息
+        showResult(`数据库清除成功，共清除 ${data.count} 条记录`, 'success');
+        
     } catch (error) {
-        console.error('检查数字时出错:', error);
-        throw error;
+        console.error('清除数据库失败:', error);
+        showResult('清除数据库失败: ' + error.message, 'danger');
     }
 }
 
-async function uploadExcel() {
-    const fileInput = document.getElementById('excelFile');
-    const file = fileInput.files[0];
-    
-    if (!file) {
-        showResult('请选择文件', 'warning');
-        return;
+// 将函数添加到全局作用域
+Object.assign(window, {
+    clearDatabase,
+    showClearConfirm: () => {
+        const modal = new bootstrap.Modal(document.getElementById('clearConfirmModal'));
+        modal.show();
     }
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    try {
-        showResult('正在上传文件...', 'info');
-        
-        const response = await fetch(`${BASE_URL}/upload_excel`, {
-            method: 'POST',
-            body: formData
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || `上传失败 (${response.status})`);
-        }
-        
-        // 更新文件状态
-        updateFileStatus(file.name);
-        showResult(data.message, 'success');
-        
-        // 刷新Excel预览
-        refreshExcelPreview();
-        
-        // 清空文件输入框
-        fileInput.value = '';
-    } catch (error) {
-        console.error('上传文件时出错:', error);
-        showResult(error.message || '上传失败，请重试', 'danger');
-    }
-}
-
-function showResult(message, type) {
-    const resultDiv = document.getElementById('result');
-    if (!resultDiv) {
-        console.error('Result div not found');
-        return;
-    }
-    
-    // 清除之前的定时器
-    if (currentMessageTimeout) {
-        clearTimeout(currentMessageTimeout);
-        currentMessageTimeout = null;
-    }
-    
-    // 清除之前的动画和类
-    resultDiv.style.animation = '';
-    resultDiv.style.display = 'none';
-    
-    // 设置新的消息和样式
-    resultDiv.textContent = message;
-    resultDiv.className = `alert alert-${type}`;
-    
-    // 重新触发动画
-    void resultDiv.offsetWidth; // 触发重排以重启动画
-    resultDiv.style.display = 'block';
-    resultDiv.style.animation = 'slideDown 0.3s ease-out';
-    
-    // 如果不是"正在处理"或"正在上传"的消息，设置自动隐藏
-    if (!message.includes('正在处理') && !message.includes('正在上传')) {
-        currentMessageTimeout = setTimeout(() => {
-            resultDiv.style.animation = 'fadeOut 0.3s ease-out';
-            setTimeout(() => {
-                if (resultDiv.style.animation.includes('fadeOut')) {
-                    resultDiv.style.display = 'none';
-                }
-            }, 300);
-        }, 5000); // 增加到5秒
-    }
-}
-
-function refreshExcelPreview() {
-    fetch(`${BASE_URL}/get_excel_data`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                throw new Error(data.error);
-            }
-            updateExcelPreview(data);
-        })
-        .catch(error => {
-            console.error('获取Excel数据失败:', error);
-            showResult('获取Excel数据失败', 'danger');
-        });
-}
-
-function updateExcelPreview(data) {
-    const headerRow = document.getElementById('previewHeader');
-    const tableBody = document.getElementById('previewBody');
-    const emptyMessage = document.getElementById('previewEmpty');
-    
-    if (!headerRow || !tableBody || !emptyMessage) {
-        console.error('Excel preview elements not found');
-        return;
-    }
-    
-    // 清空现有内容
-    headerRow.innerHTML = '';
-    tableBody.innerHTML = '';
-    
-    if (!data.columns || !data.data || data.data.length === 0) {
-        emptyMessage.style.display = 'block';
-        return;
-    }
-    
-    emptyMessage.style.display = 'none';
-    
-    // 添加表头
-    data.columns.forEach(column => {
-        const th = document.createElement('th');
-        th.textContent = column;
-        headerRow.appendChild(th);
-    });
-    
-    // 添加数据行
-    data.data.forEach(row => {
-        const tr = document.createElement('tr');
-        data.columns.forEach(column => {
-            const td = document.createElement('td');
-            td.textContent = row[column] || '';
-            tr.appendChild(td);
-        });
-        tableBody.appendChild(tr);
-    });
-}
-
-function updateFileStatus(filename) {
-    lastUploadedFile = filename;
-    localStorage.setItem('lastUploadedFile', filename);
-    updateFileDisplay();
-}
-
-function updateFileDisplay() {
-    const fileInput = document.getElementById('excelFile');
-    if (!fileInput) {
-        console.error('File input element not found');
-        return;
-    }
-
-    const uploadButton = fileInput.nextElementSibling;
-    const fileNameDisplay = document.getElementById('currentFileName');
-    
-    if (lastUploadedFile) {
-        if (uploadButton) {
-            uploadButton.innerHTML = '<i class="bi bi-upload"></i> 更新';
-        }
-        if (fileNameDisplay) {
-            fileNameDisplay.innerHTML = `当前文件：<strong>${lastUploadedFile}</strong>`;
-        }
-    }
-}
-
-// 页面加载时检查是否已有数据
-window.onload = function() {
-    checkExistingData();
-}
-
-function checkExistingData() {
-    // 先检查元素是否存在
-    const uploadStatus = document.getElementById('upload-status');
-    if (!uploadStatus) {
-        console.warn('upload-status element not found, creating it');
-        // 如果元素不存在，尝试创建它
-        const cardBody = document.querySelector('.card-body');
-        if (cardBody) {
-            const statusDiv = document.createElement('div');
-            statusDiv.id = 'upload-status';
-            statusDiv.className = 'mb-3';
-            cardBody.insertBefore(statusDiv, cardBody.firstChild);
-        } else {
-            console.error('Could not find .card-body element');
-            return;
-        }
-    }
-
-    fetch(`${BASE_URL}/get_excel_data`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.data && data.data.length > 0) {
-                const status = document.getElementById('upload-status');
-                if (status) {
-                    status.innerHTML = 
-                        '<div class="alert alert-warning">已存在数据表，重复上传会覆盖现有数据。</div>';
-                }
-                // 显示现有数据
-                displayExistingData(data);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showResult('获取数据失败', 'danger');
-        });
-}
-
-function displayExistingData(data) {
-    // 如果需要显示现有数据，在这里实现
-    console.log('现有数据:', data);
-}
-
-// 添加系统相机调用函数
-function startSystemCamera() {
-    // 创建文件输入元素
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';  // 接受所有图片格式
-    input.capture = 'environment';  // 使用后置相机
-    
-    // 监听文件选择
-    input.onchange = async function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            try {
-                // 显示处理中提示
-                showResult('正在处理图片...', 'info');
-                
-                // 创建新的扫描器实例
-                const html5QrcodeScanner = new Html5Qrcode("reader");
-                
-                // 从文件中扫描二维码
-                const result = await html5QrcodeScanner.scanFile(file, true);
-                
-                // 处理扫描结果
-                onScanSuccess(result, null);
-                
-            } catch (error) {
-                console.error('处理图片失败:', error);
-                showResult('无法识别二维码，请重试', 'danger');
-            }
-        }
-    };
-    
-    // 触发文件选择
-    input.click();
-}
-
-// 修改 HTML 中的扫描按钮文本
-document.getElementById('scanButton').innerHTML = '<i class="bi bi-camera"></i> 打开相机扫描'; 
-
-// 添加备份列表刷新函数
-async function refreshBackups() {
-    try {
-        const response = await fetch(`${BASE_URL}/list_backups`);
-        const data = await response.json();
-        
-        const backupList = document.getElementById('backupList');
-        backupList.innerHTML = '';
-        
-        if (data.backups && data.backups.length > 0) {
-            data.backups.forEach(backup => {
-                const item = document.createElement('div');
-                item.className = 'list-group-item d-flex justify-content-between align-items-center';
-                item.innerHTML = `
-                    <div>
-                        <small class="text-muted">${backup.timestamp}</small>
-                        <div>${formatBytes(backup.size)}</div>
-                    </div>
-                    <button class="btn btn-sm btn-outline-primary" 
-                            onclick="restoreBackup('${backup.filename}')">
-                        恢复
-                    </button>
-                `;
-                backupList.appendChild(item);
-            });
-        } else {
-            backupList.innerHTML = '<div class="text-muted text-center py-3">暂无备份</div>';
-        }
-    } catch (error) {
-        console.error('获取备份列表失败:', error);
-        showResult('获取备份列表失败', 'danger');
-    }
-}
-
-// 添加恢复备份函数
-async function restoreBackup(filename) {
-    if (!confirm('确定要恢复这个备份吗？当前数据将被覆盖。')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${BASE_URL}/restore_backup/${filename}`);
-        const data = await response.json();
-        
-        if (response.ok) {
-            showResult('备份恢复成功', 'success');
-            refreshExcelPreview();
-        } else {
-            throw new Error(data.error);
-        }
-    } catch (error) {
-        console.error('恢复备份失败:', error);
-        showResult('恢复备份失败', 'danger');
-    }
-}
-
-// 文件大小格式化函数
-function formatBytes(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-// 添加日志函数
-function logToServer(message, type = 'info') {
-    console.log(`[${type.toUpperCase()}] ${message}`);
-    
-    // 发送日志到服务器
-    fetch(`${BASE_URL}/log`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            message,
-            type,
-            timestamp: new Date().toISOString()
-        })
-    }).catch(error => console.error('发送日志失败:', error));
-}
-
-// 在关键操作处添加日志
-async function checkTempFiles() {
-    try {
-        logToServer('开始检查临时文件');
-        const response = await fetch(`${BASE_URL}/check_temp_files`);
-        const data = await response.json();
-        
-        logToServer(`找到 ${data.files?.length || 0} 个文件`);
-        console.log('文件列表:', data.files);
-        
-        if (data.files && data.files.length > 0) {
-            console.log('找到的文件:', data.files);
-            
-            // 显示文件列表
-            const fileList = data.files.map(file => `
-                <div class="list-group-item">
-                    <div>路径: ${file.path}</div>
-                    <div>大小: ${formatBytes(file.size)}</div>
-                    <div>修改时间: ${file.modified}</div>
-                    <button class="btn btn-sm btn-primary mt-2" 
-                            onclick="recoverFile('${file.path}')">
-                        恢复此文件
-                    </button>
-                </div>
-            `).join('');
-            
-            // 显示在页面上
-            const result = document.getElementById('result');
-            result.innerHTML = `
-                <div class="alert alert-info">
-                    <h5>找到以下文件：</h5>
-                    <div class="list-group mt-3">
-                        ${fileList}
-                    </div>
-                </div>
-            `;
-        } else {
-            showResult('未找到任何Excel文件', 'warning');
-        }
-    } catch (error) {
-        logToServer(`检查文件失败: ${error.message}`, 'error');
-        showResult('检查文件失败: ' + error.message, 'danger');
-    }
-}
-
-// 添加恢复文件函数
-async function recoverFile(filePath) {
-    try {
-        logToServer(`尝试恢复文件: ${filePath}`);
-        const response = await fetch(`${BASE_URL}/recover_file/${encodeURIComponent(filePath)}`);
-        const data = await response.json();
-        
-        if (response.ok) {
-            logToServer('文件恢复成功');
-            showResult('文件恢复成功', 'success');
-            refreshExcelPreview();
-        } else {
-            throw new Error(data.error || '恢复失败');
-        }
-    } catch (error) {
-        logToServer(`恢复文件失败: ${error.message}`, 'error');
-        showResult('恢复文件失败: ' + error.message, 'danger');
-    }
-} 
+}); 

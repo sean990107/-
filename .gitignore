@@ -1,8 +1,6 @@
-__pycache__/
-*.pyc
-.env
-*.db
-uploads/*
-!uploads/.gitkeep
 .DS_Store
-venv/ 
+venv/
+backups/*
+!backups/.gitkeep
+template.xlsx
+temp_*.xlsx 
