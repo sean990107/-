@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, send_file
 from datetime import datetime
 from io import BytesIO
 import openpyxl
-from config.database import records, fs, BACKUP_DIR
+from config.database import records, fs, BACKUP_DIR, statistics
 from bson.objectid import ObjectId
 import logging
 
@@ -177,4 +177,31 @@ def delete_backup(file_id):
         return jsonify({'message': '备份已删除'})
     except Exception as e:
         logger.error(f"删除备份失败: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@backup_bp.route('/clear_database', methods=['POST'])
+def clear_database():
+    try:
+        data = request.get_json()
+        password = data.get('password')
+        
+        # 验证密码
+        if password != 'admin123':  # 这里设置您想要的管理员密码
+            return jsonify({'error': '密码错误'}), 403
+            
+        # 清除所有集合的数据
+        records_count = records.delete_many({}).deleted_count
+        statistics.delete_many({})
+        
+        # 删除所有文件（除了模板文件）
+        for file in fs.find({'filename': {'$ne': 'template.xlsx'}}):
+            fs.delete(file._id)
+            
+        return jsonify({
+            'message': '数据库清除成功',
+            'count': records_count
+        })
+        
+    except Exception as e:
+        logger.error(f"清除数据库失败: {str(e)}")
         return jsonify({'error': str(e)}), 500 

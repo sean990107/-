@@ -75,7 +75,7 @@ async function clearDatabase() {
             return;
         }
 
-        const response = await fetch(`${BASE_URL}/clear_database`, {
+        const response = await fetch(`${BASE_URL}/api/clear_database`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
