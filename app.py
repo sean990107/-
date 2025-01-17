@@ -211,6 +211,15 @@ def get_excel_data():
         logger.error(f"获取Excel数据时出错: {str(e)}")
         return jsonify({'error': '读取数据失败'}), 500
 
+# 添加静态文件缓存控制
+@app.after_request
+def add_header(response):
+    if 'Cache-Control' not in response.headers:
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+    return response
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(
