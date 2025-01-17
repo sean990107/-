@@ -7,8 +7,11 @@ let lastUploadedFile = localStorage.getItem('lastUploadedFile') || null;
 // 添加基础URL配置
 const BASE_URL = window.location.origin;  // 自动适应部署环境
 
+// 添加版本号
+const VERSION = '1.0.1';
+
 // 添加语音对象
-const successAudio = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAADAAAGhgBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr///////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAAYbUjEkJAAAAAAAAAAAAAAAAAAAA//tQxAAB8AAAf4AAAAwAAAP8AAAABAA1VAuD4PwkHQfB8Hwfg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+AA");
+const successAudio = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAADAAAGhgBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr///////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAAYbUjEkJAAAAAAAAAAAAAAAAAAAA//tQxAAB8AAAf4AAAAwAAAP8AAAABAA1VAuD4PwkHQfB8Hwfg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+AA");
 
 document.addEventListener('DOMContentLoaded', function() {
     // 获取摄像头选择下拉框
@@ -151,14 +154,8 @@ function toggleScanning() {
     const scanButton = document.getElementById('scanButton');
     
     if (!isScanning) {
-        // 开始扫描
-        isScanning = true;
-        scanButton.innerHTML = '<i class="bi bi-stop-circle"></i> 停止扫描';
-        scanButton.classList.add('scanning');
-        showResult('扫描已开启', 'info');
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.resume();
-        }
+        // 调用系统相机
+        startSystemCamera();
     } else {
         // 停止扫描
         isScanning = false;
@@ -471,4 +468,43 @@ function checkExistingData() {
 function displayExistingData(data) {
     // 如果需要显示现有数据，在这里实现
     console.log('现有数据:', data);
-} 
+}
+
+// 添加系统相机调用函数
+function startSystemCamera() {
+    // 创建文件输入元素
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';  // 接受所有图片格式
+    input.capture = 'environment';  // 使用后置相机
+    
+    // 监听文件选择
+    input.onchange = async function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            try {
+                // 显示处理中提示
+                showResult('正在处理图片...', 'info');
+                
+                // 创建新的扫描器实例
+                const html5QrcodeScanner = new Html5Qrcode("reader");
+                
+                // 从文件中扫描二维码
+                const result = await html5QrcodeScanner.scanFile(file, true);
+                
+                // 处理扫描结果
+                onScanSuccess(result, null);
+                
+            } catch (error) {
+                console.error('处理图片失败:', error);
+                showResult('无法识别二维码，请重试', 'danger');
+            }
+        }
+    };
+    
+    // 触发文件选择
+    input.click();
+}
+
+// 修改 HTML 中的扫描按钮文本
+document.getElementById('scanButton').innerHTML = '<i class="bi bi-camera"></i> 打开相机扫描'; 
