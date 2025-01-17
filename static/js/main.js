@@ -7,6 +7,9 @@ let lastUploadedFile = localStorage.getItem('lastUploadedFile') || null;
 // 添加基础URL配置
 const BASE_URL = window.location.origin;  // 自动适应部署环境
 
+// 添加语音对象
+const successAudio = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAADAAAGhgBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr///////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAAYbUjEkJAAAAAAAAAAAAAAAAAAAA//tQxAAB8AAAf4AAAAwAAAP8AAAABAA1VAuD4PwkHQfB8Hwfg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+D4Pg+AA");
+
 document.addEventListener('DOMContentLoaded', function() {
     // 获取摄像头选择下拉框
     const cameraSelect = document.getElementById('cameraSelect');
@@ -95,12 +98,10 @@ function startCamera() {
         aspectRatio: 1.0,
         formatsToSupport: [
             Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.DATA_MATRIX,
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39
+            Html5QrcodeSupportedFormats.DATA_MATRIX
         ],
         experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true
+            useBarCodeDetectorIfSupported: false
         },
         disableFlip: false,
         videoConstraints: {
@@ -109,8 +110,18 @@ function startCamera() {
             facingMode: "environment",
             advanced: [{
                 focusMode: "continuous",
-                zoom: 1.0
+                zoom: 1.5,
+                brightness: 1.2,
+                contrast: 1.5
             }]
+        },
+        verbose: true,
+        rememberLastUsedCamera: true,
+        useGrayscaleImage: true,
+        threshold: {
+            perfect: 0.1,
+            good: 0.05,
+            valid: 0.02
         }
     };
     
@@ -180,45 +191,44 @@ function stopCamera() {
     return Promise.resolve();
 }
 
-function onScanSuccess(decodedText, decodedResult) {
-    console.log('扫描成功:', decodedText, decodedResult);
-    
-    // 暂停扫描
-    isScanning = false;
-    const scanButton = document.getElementById('scanButton');
-    scanButton.innerHTML = '<i class="bi bi-qr-code-scan"></i> 开始扫描';
-    scanButton.classList.remove('scanning');
-    
-    // 显示正在处理的提示
-    showResult('正在处理扫描结果...', 'info');
-    
-    // 处理扫描到的数字
-    checkNumber(decodedText).then((data) => {
-        // 显示处理结果
+async function onScanSuccess(decodedText, decodedResult) {
+    try {
+        // 播放提示音
+        successAudio.play().catch(e => console.error('播放提示音失败:', e));
+        
+        // 暂停扫描
+        isScanning = false;
+        
+        // 显示处理中的提示
+        showResult('正在处理...', 'info');
+        
+        // 发送到服务器验证
+        const data = await checkNumber(decodedText);
+        
+        if (data.exists) {
+            showResult(data.message, 'warning');
+        } else {
+            showResult(data.message, 'success');
+        }
+        
+        // 延迟后恢复扫描
         setTimeout(() => {
-            if (data.exists) {
-                showResult('该数据已存在', 'warning');
-            } else {
-                showResult('新数据已添加', 'success');
-                // 刷新Excel预览
-                refreshExcelPreview();
-            }
-            // 延迟显示可以继续扫描的提示
-            setTimeout(() => {
-                showResult('可以继续扫描', 'info');
-            }, 2000);
-        }, 800);
-    }).catch(error => {
+            isScanning = true;
+        }, 1500);
+        
+    } catch (error) {
         console.error('处理扫描结果时出错:', error);
+        showResult(error.message || '处理失败，请重试', 'danger');
+        // 延迟后恢复扫描
         setTimeout(() => {
-            showResult(`处理失败: ${error.message}`, 'danger');
-        }, 800);
-    });
+            isScanning = true;
+        }, 1500);
+    }
 }
 
 function onScanError(errorMessage) {
-    // 只记录错误，不显示给用户
-    console.debug(`扫描错误: ${errorMessage}`);
+    // 只在控制台记录错误，不显示给用户
+    console.debug('扫描中...', errorMessage);
 }
 
 async function checkNumber(number) {

@@ -52,12 +52,13 @@ body {
     background: linear-gradient(to bottom, #ffffff, #f8f9fa);
     padding: 20px;
     border-radius: 12px;
+    text-align: center;
 }
 
 #reader {
     width: 100%;
     max-width: 600px;
-    margin: 0 auto;
+    margin: 0 auto 20px;
     overflow: hidden;
     border-radius: 12px !important;
     border: 2px solid #e9ecef !important;
@@ -93,6 +94,16 @@ body {
 #scanButton {
     min-width: 200px;
     font-size: 1.1rem;
+    margin-top: 15px;
+    padding: 12px 30px;
+    border-radius: 50px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+#scanButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 #scanButton.scanning {
@@ -289,4 +300,13 @@ body {
         justify-content: space-between;
         align-items: center;
     }
+}
+
+/* 优化扫描框样式 */
+#reader video {
+    object-fit: cover !important;
+}
+
+#reader * {
+    border-radius: 12px !important;
 } 
